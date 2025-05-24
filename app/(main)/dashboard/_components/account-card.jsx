@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { updateDefaultAccount } from "@/actions/account";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils/formatCurrency"; // Import formatCurrency
 
 export function AccountCard({ account }) {
   const { name, type, balance, id, isDefault } = account;
@@ -30,7 +31,7 @@ export function AccountCard({ account }) {
     event.preventDefault(); // Prevent navigation
 
     if (isDefault) {
-      toast.warning("You need atleast 1 default account");
+      toast.warning("You need at least 1 default account");
       return; // Don't allow toggling off the default account
     }
 
@@ -64,7 +65,7 @@ export function AccountCard({ account }) {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            ${parseFloat(balance).toFixed(2)}
+            {formatCurrency(balance)} {/* Use the formatCurrency here */}
           </div>
           <p className="text-xs text-muted-foreground">
             {type.charAt(0) + type.slice(1).toLowerCase()} Account

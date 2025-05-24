@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { createTransaction, updateTransaction } from "@/actions/transaction";
 import { transactionSchema } from "@/app/lib/schema";
 import { ReceiptScanner } from "./recipt-scanner";
+import { formatCurrency } from "@/lib/utils/formatCurrency";  // Import your formatCurrency function
 
 export function AddTransactionForm({
   accounts,
@@ -180,7 +181,7 @@ export function AddTransactionForm({
             <SelectContent>
               {accounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
-                  {account.name} (${parseFloat(account.balance).toFixed(2)})
+                  {account.name} ({formatCurrency(account.balance)})
                 </SelectItem>
               ))}
               <CreateAccountDrawer>
@@ -304,29 +305,34 @@ export function AddTransactionForm({
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => router.back()}
-        >
-          Cancel
-        </Button>
-        <Button type="submit" className="w-full" disabled={transactionLoading}>
-          {transactionLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {editMode ? "Updating..." : "Creating..."}
-            </>
-          ) : editMode ? (
-            "Update Transaction"
-          ) : (
-            "Create Transaction"
-          )}
-        </Button>
-      </div>
+{/* Actions */}
+<div className="flex flex-col sm:flex-row justify-between gap-4 mt-6">
+  <Button
+    type="button"
+    variant="outline"
+    className="sm:w-1/2"
+    onClick={() => router.back()}
+  >
+    Cancel
+  </Button>
+  <Button
+    type="submit"
+    className="sm:w-1/2"
+    disabled={transactionLoading}
+  >
+    {transactionLoading ? (
+      <>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        {editMode ? "Updating..." : "Creating..."}
+      </>
+    ) : editMode ? (
+      "Update Transaction"
+    ) : (
+      "Create Transaction"
+    )}
+  </Button>
+</div>
+
     </form>
   );
 }

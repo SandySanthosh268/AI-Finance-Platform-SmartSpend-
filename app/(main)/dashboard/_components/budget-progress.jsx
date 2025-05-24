@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateBudget } from "@/actions/budget";
+import { formatCurrency } from "@/lib/utils/formatCurrency"; // Import formatCurrency
 
 export function BudgetProgress({ initialBudget, currentExpenses }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -103,9 +104,7 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
               <>
                 <CardDescription>
                   {initialBudget
-                    ? `$${currentExpenses.toFixed(
-                        2
-                      )} of $${initialBudget.amount.toFixed(2)} spent`
+                    ? `${formatCurrency(currentExpenses)} of ${formatCurrency(initialBudget.amount)} spent`
                     : "No budget set"}
                 </CardDescription>
                 <Button
@@ -124,18 +123,16 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
       <CardContent>
         {initialBudget && (
           <div className="space-y-2">
-  <Progress
-  value={percentUsed}
-  indicatorClassName={
-    percentUsed >= 90
-      ? "bg-red-500"
-      : percentUsed >= 75
-        ? "bg-yellow-500"
-        : "bg-green-500"
-  }
-/>
-
-
+            <Progress
+              value={percentUsed}
+              indicatorClassName={
+                percentUsed >= 90
+                  ? "bg-red-500"
+                  : percentUsed >= 75
+                  ? "bg-yellow-500"
+                  : "bg-green-500"
+              }
+            />
             <p className="text-xs text-muted-foreground text-right">
               {percentUsed.toFixed(1)}% used
             </p>

@@ -14,14 +14,16 @@ model User {
   email         String    @unique
   name          String?
   imageUrl      String?
+  mobileNumber  String?   // <-- New optional field
   transactions  Transaction[]
   accounts      Account[]
   budgets       Budget[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@map("users")
 }
+
 
 model Account {
   id           String        @id @default(uuid())
