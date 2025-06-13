@@ -2,13 +2,13 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "email": "email dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
+"scripts": {
+  "dev": "next dev --turbopack",
+  "email": "email dev",
+  "build": "prisma generate && next build",
+  "start": "next start",
+  "lint": "next lint"
+},
   "dependencies": {
     "@arcjet/inspect": "^1.0.0-beta.6",
     "@arcjet/next": "^1.0.0-beta.6",
