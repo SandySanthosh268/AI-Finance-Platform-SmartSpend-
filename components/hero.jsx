@@ -1,33 +1,13 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const HeroSection = () => {
-  const imageRef = useRef(null);
   const demoVideoRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Scroll animation
-  useEffect(() => {
-    const imageElement = imageRef.current;
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const threshold = 100;
-      if (imageElement) {
-        if (scrollY > threshold) {
-          imageElement.classList.add("scale-105", "opacity-90");
-        } else {
-          imageElement.classList.remove("scale-105", "opacity-90");
-        }
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Play/pause demo video
+  // Play/pause demo video when modal opens/closes
   useEffect(() => {
     const video = demoVideoRef.current;
     if (isModalOpen) {
@@ -70,20 +50,6 @@ const HeroSection = () => {
             Watch Demo
           </Button>
         </div>
-
-        {/* Image */}
-        <div className="hero-image-wrapper mt-5 md:mt-0 transition-all duration-500 ease-in-out">
-          <div ref={imageRef} className="hero-image">
-            <Image
-              src="/banner.jpeg"
-              width={1280}
-              height={720}
-              alt="Dashboard Preview"
-              className="rounded-lg shadow-2xl border mx-auto transition-transform duration-500 ease-in-out"
-              priority
-            />
-          </div>
-        </div>
       </div>
 
       {/* Demo Modal */}
@@ -110,7 +76,6 @@ const HeroSection = () => {
               ref={demoVideoRef}
               controls
               className="w-full rounded-lg"
-              muted={false}
               playsInline
               poster="/video-poster.jpg"
             >
