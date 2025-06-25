@@ -1,4 +1,6 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
+// next.config.mjs
+export default {
+  experimental: {
+    turbo: false, // ✅ Disable Turbopack to fix internal font module error
+  },
+};

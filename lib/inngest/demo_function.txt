@@ -93,44 +93,6 @@ export const triggerRecurringTransactions = inngest.createFunction(
 );
 
 // 3. Generate Monthly Reports
-async function generateFinancialInsights(stats, month) {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-  const prompt = `
-    Analyze this financial data and provide 3 concise, actionable insights.
-    Focus on spending patterns and practical advice.
-    Keep it friendly and conversational.
-
-    Financial Data for ${month}:
-    - Total Income: $${stats.totalIncome}
-    - Total Expenses: $${stats.totalExpenses}
-    - Net Income: $${stats.totalIncome - stats.totalExpenses}
-    - Expense Categories: ${Object.entries(stats.byCategory)
-      .map(([category, amount]) => `${category}: $${amount}`)
-      .join(", ")}
-
-    Format the response as a JSON array of strings, like this:
-    ["insight 1", "insight 2", "insight 3"]
-  `;
-
-  try {
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
-    const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
-
-    return JSON.parse(cleanedText);
-  } catch (error) {
-    console.error("Error generating insights:", error);
-    return [
-      "Your highest expense category this month might need attention.",
-      "Consider setting up a budget for better financial management.",
-      "Track your recurring expenses to identify potential savings.",
-    ];
-  }
-}
-
 export const generateMonthlyReports = inngest.createFunction(
   {
     id: "generate-monthly-reports",
@@ -139,46 +101,29 @@ export const generateMonthlyReports = inngest.createFunction(
   { cron: "0 0 1 * *" },
   async ({ step }) => {
     const users = await step.run("fetch-users", async () => {
-      return await db.user.findMany({
-        include: { accounts: true },
-      });
+      return await db.user.findMany({ include: { accounts: true } });
     });
 
     for (const user of users) {
-      await step.run(`generate-report-${user.id}`, async () => {
+      await step.run(`report-${user.id}`, async () => {
         const lastMonth = new Date();
         lastMonth.setMonth(lastMonth.getMonth() - 1);
-
         const stats = await getMonthlyStats(user.id, lastMonth);
-        const monthName = lastMonth.toLocaleString("default", {
-          month: "long",
-        });
+        const monthName = lastMonth.toLocaleString("default", { month: "long" });
 
-        // Generate AI insights
         const insights = await generateFinancialInsights(stats, monthName);
-
-        // Email
+ 
         await sendEmail({
           to: user.email,
           subject: `Your Monthly Financial Report - ${monthName}`,
-          react: EmailTemplate({
-            userName: user.name,
-            type: "monthly-report",
-            data: {
-              stats,
-              month: monthName,
-              insights,
-            },
-          }),
+          react: EmailTemplate({ userName: user.name, type: "monthly-report", data: { stats, month: monthName, insights } }),
         });
 
-        // SMS + WhatsApp
-        const smsText = `Hi ${user.name}, your monthly SmartSpend report for ${monthName} is ready!`;
-        const whatsappText = `📊 SmartSpend Report for ${monthName}:\nIncome ₹${stats.totalIncome}, Expenses ₹${stats.totalExpenses}, Net ₹${stats.totalIncome - stats.totalExpenses}`;
+        const message = `📊 SmartSpend Report for ${monthName}: Income ₹${stats.totalIncome}, Expenses ₹${stats.totalExpenses}, Net ₹${stats.totalIncome - stats.totalExpenses}`;
 
         if (user.mobileNumber) {
-          await sendSMSAlert(user.mobileNumber, smsText);
-          await sendWhatsAppAlert(user.mobileNumber, whatsappText);
+          await sendSMSAlert(user.mobileNumber, `Hi ${user.name}, your monthly report is ready!`);
+          await sendWhatsAppAlert(user.mobileNumber, message);
         }
       });
     }
@@ -239,7 +184,7 @@ export const checkBudgetAlerts = inngest.createFunction(
 
           const alert = `⚠️ You've used ${percent.toFixed(1)}% of your ₹${budget.amount} budget for ${acc.name}.`;
           if (budget.user.mobileNumber) {
-            await sendSMSAlert(budget.user.mobileNumber, ` You've used ${percent.toFixed(1)}% of your ₹${budget.amount} budget for ${acc.name}.`);
+            await sendSMSAlert(budget.user.mobileNumber, `hii`);
             await sendWhatsAppAlert(budget.user.mobileNumber, alert);
           }
 
@@ -253,6 +198,7 @@ export const checkBudgetAlerts = inngest.createFunction(
   }
 );
 
+// Utility Helpers
 function isTransactionDue(t) {
   return !t.lastProcessed || new Date(t.nextRecurringDate) <= new Date();
 }
@@ -291,4 +237,22 @@ async function getMonthlyStats(userId, month) {
     }
     return acc;
   }, { totalIncome: 0, totalExpenses: 0, byCategory: {}, transactionCount: txs.length });
+}
+
+async function generateFinancialInsights(stats, month) {
+  const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const prompt = `Analyze this: Income ₹${stats.totalIncome}, Expenses ₹${stats.totalExpenses}, Net ₹${stats.totalIncome - stats.totalExpenses}, Categories: ${JSON.stringify(stats.byCategory)} for ${month}. Give 3 tips as a JSON array.`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().replace(/```(?:json)?\n?/g, "").trim();
+    return JSON.parse(text);
+  } catch {
+    return [
+      "Your biggest expense category might need budgeting.",
+      "Try to reduce discretionary spending.",
+      "Track recurring expenses more closely."
+    ];
+  }
 }
