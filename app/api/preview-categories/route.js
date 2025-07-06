@@ -1,5 +1,6 @@
 // app/api/preview-categories/route.js
 import { suggestCategories } from "@/lib/ai/route";
+import { getCategoryIdFromName } from "@/lib/utils/getCategoryIdFromName";
 
 export async function POST(req) {
   try {
@@ -10,7 +11,8 @@ export async function POST(req) {
       type,
     }));
 
-    const categories = await suggestCategories(payload);
+    const names = await suggestCategories(payload);
+    const categories = names.map(getCategoryIdFromName); // Convert to internal ID
 
     return Response.json({ categories });
   } catch (err) {

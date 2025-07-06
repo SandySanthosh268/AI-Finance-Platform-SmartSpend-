@@ -24,28 +24,62 @@ export default function ImportClient({ accounts }) {
   const [previewData, setPreviewData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // 🔍 Smart date parser
+  const parseSmartDate = (dateStr) => {
+    const parts = dateStr.split(/[-/]/).map(p => parseInt(p));
+    if (parts.length !== 3) return null;
+
+    let [a, b, c] = parts;
+    if (c > 31) return new Date(dateStr); // yyyy-mm-dd
+    else if (a > 31) return new Date(`${a}-${b}-${c}`);
+    else if (b > 12) return new Date(`${c}-${b}-${a}`);
+    else return new Date(`${b}-${a}-${c}`);
+  };
+
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files[0];
+    if (!selectedFile) return;
+
     setFile(selectedFile);
+    setPreviewData([]);
     setLoading(true);
 
     try {
       const text = await selectedFile.text();
-      const { data: rows } = Papa.parse(text, {
+      const { data: rawRows } = Papa.parse(text, {
         header: true,
         skipEmptyLines: true,
       });
 
-      // Send to Gemini-based category suggestion API
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const filteredRows = rawRows.filter((row) => {
+        const parsedDate = parseSmartDate(row.date);
+        return (
+          row.date &&
+          !isNaN(parsedDate?.getTime?.()) &&
+          parsedDate <= today &&
+          row.amount &&
+          row.type
+        );
+      });
+
+      if (filteredRows.length === 0) {
+        toast.warning("No valid transactions to preview (check dates and format)");
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/preview-categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rows }),
+        body: JSON.stringify({ rows: filteredRows }),
       });
 
       const { categories } = await res.json();
 
-      const preview = rows.map((row, idx) => ({
+      const preview = filteredRows.map((row, idx) => ({
         ...row,
         category: categories?.[idx] || "Other Expenses",
       }));
@@ -109,10 +143,7 @@ export default function ImportClient({ accounts }) {
                 </SelectItem>
               ))}
               <CreateAccountDrawer>
-                <Button
-                  variant="ghost"
-                  className="w-full text-left text-sm py-1.5"
-                >
+                <Button variant="ghost" className="w-full text-left text-sm py-1.5">
                   Create Account
                 </Button>
               </CreateAccountDrawer>
@@ -165,12 +196,7 @@ export default function ImportClient({ accounts }) {
             {loading ? "Importing..." : "Confirm Import"}
           </Button>
           <Link href="/dashboard" className="flex-1">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={loading}
-            >
+            <Button type="button" variant="outline" className="w-full" disabled={loading}>
               Cancel
             </Button>
           </Link>

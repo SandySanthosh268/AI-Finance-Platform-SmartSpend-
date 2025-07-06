@@ -9,42 +9,6 @@ import {
   Text,
 } from "@react-email/components";
 
-// Dummy data for preview
-const PREVIEW_DATA = {
-  monthlyReport: {
-    userName: "John Doe",
-    type: "monthly-report",
-    data: {
-      month: "December",
-      stats: {
-        totalIncome: 5000,
-        totalExpenses: 3500,
-        byCategory: {
-          housing: 1500,
-          groceries: 600,
-          transportation: 400,
-          entertainment: 300,
-          utilities: 700,
-        },
-      },
-      insights: [
-        "Your housing expenses are 43% of your total spending - consider reviewing your housing costs.",
-        "Great job keeping entertainment expenses under control this month!",
-        "Setting up automatic savings could help you save 20% more of your income.",
-      ],
-    },
-  },
-  budgetAlert: {
-    userName: "",
-    type: "budget-alert",
-    data: {
-      percentageUsed: 85,
-      budgetAmount: 4000,
-      totalExpenses: 3400,
-    },
-  },
-};
-
 export default function EmailTemplate({
   userName = "",
   type = "monthly-report",
@@ -63,6 +27,8 @@ export default function EmailTemplate({
       byCategory = {},
     } = stats;
 
+    const net = Number(totalIncome) - Number(totalExpenses);
+
     return (
       <Html>
         <Head />
@@ -80,15 +46,15 @@ export default function EmailTemplate({
             <Section style={styles.statsContainer}>
               <div style={styles.stat}>
                 <Text style={styles.text}>Total Income</Text>
-                <Text style={styles.heading}>₹{totalIncome}</Text>
+                <Text style={styles.heading}>₹{Number(totalIncome).toFixed(2)}</Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Total Expenses</Text>
-                <Text style={styles.heading}>₹{totalExpenses}</Text>
+                <Text style={styles.heading}>₹{Number(totalExpenses).toFixed(2)}</Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Net</Text>
-                <Text style={styles.heading}>₹{totalIncome - totalExpenses}</Text>
+                <Text style={styles.heading}>₹{Number(net).toFixed(2)}</Text>
               </div>
             </Section>
 
@@ -99,7 +65,7 @@ export default function EmailTemplate({
                 {Object.entries(byCategory).map(([category, amount]) => (
                   <div key={category} style={styles.row}>
                     <Text style={styles.text}>{category}</Text>
-                    <Text style={styles.text}>₹{amount}</Text>
+                    <Text style={styles.text}>₹{Number(amount).toFixed(2)}</Text>
                   </div>
                 ))}
               </Section>
@@ -134,6 +100,8 @@ export default function EmailTemplate({
       totalExpenses = 0,
     } = data;
 
+    const remaining = Number(budgetAmount) - Number(totalExpenses);
+
     return (
       <Html>
         <Head />
@@ -143,22 +111,20 @@ export default function EmailTemplate({
             <Heading style={styles.title}>Budget Alert</Heading>
             <Text style={styles.text}>Hello {userName},</Text>
             <Text style={styles.text}>
-              You&rsquo;ve used {percentageUsed.toFixed(1)}% of your monthly budget.
+              You&rsquo;ve used {Number(percentageUsed).toFixed(1)}% of your monthly budget.
             </Text>
             <Section style={styles.statsContainer}>
               <div style={styles.stat}>
                 <Text style={styles.text}>Budget Amount</Text>
-                <Text style={styles.heading}>₹{budgetAmount}</Text>
+                <Text style={styles.heading}>₹{Number(budgetAmount).toFixed(2)}</Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Spent So Far</Text>
-                <Text style={styles.heading}>₹{totalExpenses}</Text>
+                <Text style={styles.heading}>₹{Number(totalExpenses).toFixed(2)}</Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Remaining</Text>
-                <Text style={styles.heading}>
-                  ₹{budgetAmount - totalExpenses}
-                </Text>
+                <Text style={styles.heading}>₹{Number(remaining).toFixed(2)}</Text>
               </div>
             </Section>
           </Container>
@@ -167,7 +133,7 @@ export default function EmailTemplate({
     );
   }
 
-  return null; // fallback if type is not handled
+  return null; // fallback
 }
 
 const styles = {
