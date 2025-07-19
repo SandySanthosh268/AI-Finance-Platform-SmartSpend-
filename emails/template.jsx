@@ -36,13 +36,11 @@ export default function EmailTemplate({
         <Body style={styles.body}>
           <Container style={styles.container}>
             <Heading style={styles.title}>Monthly Financial Report</Heading>
-
             <Text style={styles.text}>Hello {userName},</Text>
             <Text style={styles.text}>
-              Here&rsquo;s your financial summary for {month}:
+              Here’s your financial summary for {month}:
             </Text>
 
-            {/* Main Stats */}
             <Section style={styles.statsContainer}>
               <div style={styles.stat}>
                 <Text style={styles.text}>Total Income</Text>
@@ -58,7 +56,6 @@ export default function EmailTemplate({
               </div>
             </Section>
 
-            {/* Category Breakdown */}
             {Object.keys(byCategory).length > 0 && (
               <Section style={styles.section}>
                 <Heading style={styles.heading}>Expenses by Category</Heading>
@@ -71,7 +68,6 @@ export default function EmailTemplate({
               </Section>
             )}
 
-            {/* AI Insights */}
             {insights.length > 0 && (
               <Section style={styles.section}>
                 <Heading style={styles.heading}>SmartSpend Insights</Heading>
@@ -111,7 +107,7 @@ export default function EmailTemplate({
             <Heading style={styles.title}>Budget Alert</Heading>
             <Text style={styles.text}>Hello {userName},</Text>
             <Text style={styles.text}>
-              You&rsquo;ve used {Number(percentageUsed).toFixed(1)}% of your monthly budget.
+              You’ve used {Number(percentageUsed).toFixed(1)}% of your monthly budget.
             </Text>
             <Section style={styles.statsContainer}>
               <div style={styles.stat}>
@@ -124,7 +120,7 @@ export default function EmailTemplate({
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Remaining</Text>
-                <Text style={styles.heading}>₹{Number(remaining).toFixed(2)}</Text>
+                <Text style={styles.heading}>₹{remaining.toFixed(2)}</Text>
               </div>
             </Section>
           </Container>
@@ -133,7 +129,29 @@ export default function EmailTemplate({
     );
   }
 
-  return null; // fallback
+  // ✅ Recurring Transaction Alert
+  if (type === "custom") {
+    const { message = "" } = data;
+
+    return (
+      <Html>
+        <Head />
+        <Preview>Recurring Transaction Alert</Preview>
+        <Body style={styles.body}>
+          <Container style={styles.container}>
+            <Heading style={styles.title}>Transaction Alert</Heading>
+            <Text style={styles.text}>Hello {userName},</Text>
+            <Text style={styles.text}>{message}</Text>
+            <Text style={styles.footer}>
+              Stay in control of your finances with SmartSpend.
+            </Text>
+          </Container>
+        </Body>
+      </Html>
+    );
+  }
+
+  return null;
 }
 
 const styles = {

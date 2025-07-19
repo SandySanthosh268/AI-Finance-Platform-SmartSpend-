@@ -1,4 +1,3 @@
-
 import twilio from "twilio";
 
 const client = twilio(
@@ -11,12 +10,13 @@ export async function sendSMSAlert(to, message) {
   try {
     const response = await client.messages.create({
       body: message,
-      from: process.env.TWILIO_SMS_FROM, // ✅ MUST be set correctly
+      from: process.env.TWILIO_SMS_FROM,
       to,
     });
     console.log(`✅ SMS sent to ${to}: SID ${response.sid}`);
   } catch (error) {
-    console.error("❌ SMS Error:", error.message);
+    console.error("❌ SMS Error:", error?.message || error);
+    console.error(error);
   }
 }
 
@@ -25,11 +25,12 @@ export async function sendWhatsAppAlert(to, message) {
   try {
     const response = await client.messages.create({
       body: message,
-      from: process.env.TWILIO_WHATSAPP_FROM, // ✅ MUST be set correctly
-      to: `whatsapp:${to}`, // ✅ Destination must have 'whatsapp:' prefix
+      from: process.env.TWILIO_WHATSAPP_FROM,
+      to: `whatsapp:${to}`,
     });
     console.log(`✅ WhatsApp sent to ${to}: SID ${response.sid}`);
   } catch (error) {
-    console.error("❌ WhatsApp Error:", error.message);
+    console.error("❌ WhatsApp Error:", error?.message || error);
+    console.error(error);
   }
 }
